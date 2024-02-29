@@ -3,7 +3,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import {BsTrash, BsBookmarkCheck, BsBookmarkCheckFill} from 'react-icons/bs'
 
-const API = "http://localhost:5000/todos"
+const API = "http://localhost:5000/todos/"
 
 function App() {
 
@@ -17,7 +17,7 @@ function App() {
     const loadData = async() =>{
       setLoading(true)
 
-      const resp = await fetch('http://localhost:5000/todos')
+      const resp = await fetch(API)
       .then((resp) => resp.json())
       .then((data) => data)
       .catch((error) => console.log(error));
@@ -51,10 +51,36 @@ function App() {
      },
 
     });
+    setTodos((prevState) =>[...prevState, todo])
     console.log(todo)
-    console.log()
+    console.log(todo.id)
     setTitle("")
     setTime("")
+  };
+
+  const handleDelete = async (id) =>{
+  await fetch(`http://localhost:5000/todos/${id}`,{
+    method: "DELETE",
+  });
+  setTodos((prevState) => prevState.filter((todo) => todo.id !==id)) 
+
+}
+
+const handleEdit = async(todo) =>{
+  todo.done = !todo.done;
+  const data = await fetch(`http://localhost:5000/todos/${todo.id}`,{
+    method: "PUT",
+    body: JSON.stringify(todo),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  setTodos((prevState) => prevState.map((t) =>(t.id === 
+data.id ? (t === data) : t)))
+}
+
+  if(loading){
+    return <p>Carregand informações...</p>
   }
 
   return (
@@ -91,7 +117,12 @@ function App() {
           
           {todos.map((todo) =>(
             <div className='todo' key={todo.id}>
-              <p>{todo.title}</p>
+              <h3 className={todo.done ? "todo_done" : ""}>{todo.title} </h3>
+              <p>Duração: {todo.time} Horas</p>
+              <span onClick={() => handleEdit(todo.id)}>
+                {!todo.done ? <BsBookmarkCheck/> : <BsBookmarkCheckFill/>}
+              </span>
+              <BsTrash onClick={() =>handleDelete(todo.id)}/>
             </div>
           ))}
           
